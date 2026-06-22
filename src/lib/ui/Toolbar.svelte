@@ -18,6 +18,9 @@
     chat: void;
     settings: void;
     networkInfo: void;
+    exportPlain: void;
+    exportHtml: void;
+    metadata: void;
   }>();
 </script>
 
@@ -37,7 +40,7 @@
         disabled={!connected || !hasWriteAccess}
         title={!connected
           ? "Not connected"
-          : hasWriteAccess === false // Only show the "No write access" title after confirming read-only mode.
+          : hasWriteAccess === false
           ? "No write access"
           : "Create new terminal"}
       >
@@ -59,6 +62,31 @@
     <div class="flex space-x-1">
       <button class="icon-button" on:click={() => dispatch("networkInfo")}>
         <WifiIcon strokeWidth={1.5} class="p-0.5" />
+      </button>
+      <!-- Export dropdown -->
+      <div class="relative group">
+        <button class="icon-button text-xs font-bold" title="Export terminal output">
+          ⬇
+        </button>
+        <div
+          class="absolute top-full right-0 mt-1 hidden group-hover:block group-focus-within:block bg-zinc-800 rounded-lg shadow-lg border border-zinc-700 py-1 min-w-[160px] z-50"
+        >
+          <button
+            class="block w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 transition-colors"
+            on:click={() => dispatch("exportPlain")}
+          >
+            Export as plain text
+          </button>
+          <button
+            class="block w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 transition-colors"
+            on:click={() => dispatch("exportHtml")}
+          >
+            Export as HTML (ANSI preserved)
+          </button>
+        </div>
+      </div>
+      <button class="icon-button text-xs font-bold" on:click={() => dispatch("metadata")} title="Session metadata (local only)">
+        🏷
       </button>
     </div>
   </div>

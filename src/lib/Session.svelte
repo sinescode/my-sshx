@@ -15,6 +15,8 @@
   import { Srocket } from "./srocket";
   import type { WsClient, WsServer, WsUser, WsWinsize } from "./protocol";
   import { makeToast } from "./toast";
+  import { exportAsPlainText, exportAsHtml } from "./export";
+  import { loadMeta, saveMeta, type SessionMeta } from "./sessionMeta";
   import Chat, { type ChatMessage } from "./ui/Chat.svelte";
   import ChooseName from "./ui/ChooseName.svelte";
   import NameList from "./ui/NameList.svelte";
@@ -262,6 +264,51 @@
 
   let counter = 0n;
 
+  function getTerminalContent(raw: boolean): string {
+    try {
+      const termEl = document.querySelector(".xterm-screen");
+      if (!termEl) return "";
+      const parent = termEl.parentElement;
+      if (!parent) return "";
+      const term = (parent as any).__xterm;
+      if (term && term.buffer && term.buffer.active) {
+        const lines: string[] = [];
+        const buffer = term.buffer.active;
+        for (let i = 0; i < buffer.length; i++) {
+          const line = buffer.getLine(i);
+          if (line) lines.push(line.translateToString(raw));
+        }
+        return lines.join("\n");
+      }
+    } catch (_) { /* ignore */ }
+    return "";
+  }
+
+  function handleExport(format: "text" | "html") {
+    const content = getTerminalContent(format === "html");
+    if (!content) {
+      makeToast({ kind: "error", message: "No terminal data available for export" });
+      return;
+    }
+    if (format === "text") {
+      exportAsPlainText(content, id);
+    } else {
+      exportAsHtml(content, id);
+    }
+    makeToast({ kind: "success", message: `Exported as ${format === "text" ? "plain text" : "HTML"}` });
+  }
+
+  async function handleMetadata() {
+    const existing = await loadMeta(id);
+    const title = prompt("Session title (local only, not shared):", existing ? existing.title : "");
+    if (title === null) return;
+    const desc = prompt("Description (optional, local only):", existing ? existing.description : "");
+    const tagsStr = prompt("Tags (comma-separated, local only):", existing ? existing.tags.join(", ") : "");
+    const tags = tagsStr ? tagsStr.split(",").map(function(t) { return t.trim(); }).filter(Boolean) : [];
+    await saveMeta({ id: id, title: title, description: desc || "", tags: tags, updatedAt: Date.now() });
+    makeToast({ kind: "success", message: "Session metadata saved locally" });
+  }
+
   async function handleCreate() {
     if (hasWriteAccess === false) {
       makeToast({
@@ -414,6 +461,9 @@
       on:networkInfo={() => {
         showNetworkInfo = !showNetworkInfo;
       }}
+      on:exportPlain={() => handleExport('text')}
+      on:exportHtml={() => handleExport('html')}
+      on:metadata={handleMetadata}
     />
 
     {#if showNetworkInfo}
