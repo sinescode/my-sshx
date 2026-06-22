@@ -78,17 +78,7 @@ pub struct Session {
     /// Set when this session has been closed and removed.
     shutdown: Shutdown,
 
-    /// In-progress file transfers, keyed by transfer ID.
-    files: RwLock<HashMap<Uid, FileTransfer>>,
-}
 
-/// An in-progress file transfer in the session.
-#[derive(Debug)]
-pub struct FileTransfer {
-    pub meta: FileMeta,
-    pub chunks: Vec<Bytes>,
-    pub received: u64,
-    pub done: bool,
 }
 
 /// Internal state for each shell.
@@ -130,7 +120,6 @@ impl Session {
             update_rx,
             sync_notify: Notify::new(),
             shutdown: Shutdown::new(),
-            files: RwLock::new(HashMap::new()),
         }
     }
 
@@ -435,49 +424,17 @@ impl Session {
         self.shutdown.wait().await
     }
 
-    // ---- File transfer methods ----
+    // ---- File transfer methods (relay-only, no storage) ----
 
-    fn files(&self) -> parking_lot::RwLockWriteGuard<'_, HashMap<Uid, FileTransfer>> {
-        self.files.write()
-    }
-
-    pub fn start_file_upload(&self, id: Uid, name: String, size: u64, mime: Option<String>, uploader: Uid, uploader_name: String) -> Result<()> {
-        let mut files = self.files.write();
-        let meta = FileMeta { id, name, size, mime, uploader, uploader_name };
-        files.insert(id, FileTransfer { meta: meta.clone(), chunks: Vec::new(), received: 0, done: false });
+    pub fn relay_file_offer(&self, meta: FileMeta) {
         let _ = self.broadcast.send(WsServer::FileOffer(meta));
-        Ok(())
     }
 
-    pub fn add_file_chunk(&self, id: Uid, chunk_idx: u64, data: Bytes) -> Result<()> {
-        let mut files = self.files.write();
-        if let Some(ft) = files.get_mut(&id) {
-            if ft.done { bail!("file transfer already finished"); }
-            ft.chunks.push(data.clone());
-            ft.received += data.len() as u64;
-            let _ = self.broadcast.send(WsServer::FileChunk(id, chunk_idx, data));
-            Ok(())
-        } else {
-            bail!("file transfer not found");
-        }
+    pub fn relay_file_chunk(&self, id: Uid, chunk_idx: u64, data: Bytes) {
+        let _ = self.broadcast.send(WsServer::FileChunk(id, chunk_idx, data));
     }
 
-    pub fn finish_file_upload(&self, id: Uid, success: bool) -> Result<()> {
-        {
-            let mut files = self.files.write();
-            if let Some(ft) = files.get_mut(&id) {
-                ft.done = true;
-            }
-        }
+    pub fn relay_file_done(&self, id: Uid, success: bool) {
         let _ = self.broadcast.send(WsServer::FileDone(id, success));
-        Ok(())
-    }
-
-    pub fn file_meta(&self, id: Uid) -> Option<FileMeta> {
-        self.files.read().get(&id).map(|ft| ft.meta.clone())
-    }
-
-    pub fn file_chunks(&self, id: Uid) -> Option<Vec<Bytes>> {
-        self.files.read().get(&id).map(|ft| ft.chunks.clone())
     }
 }
