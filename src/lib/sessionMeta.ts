@@ -8,7 +8,7 @@
  * This is deliberately a simple IndexedDB wrapper with no sync mechanism.
  */
 
-const DB_NAME = "sshx-session-meta";
+const DB_NAME = "mysshx-session-meta";
 const DB_VERSION = 1;
 const STORE_NAME = "metadata";
 

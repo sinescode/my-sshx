@@ -7,7 +7,7 @@ version = "0.4.1"
 authors = ["Eric Zhang <ekzhang1@gmail.com>"]
 license = "MIT"
 description = "A secure web-based, collaborative terminal."
-repository = "https://github.com/ekzhang/sshx"
+repository = "https://github.com/sinescode/mysshx"
 documentation = "https://sshx.io"
 keywords = ["ssh", "share", "terminal", "collaborative"]
 
@@ -17,7 +17,7 @@ clap = { version = "4.5.17", features = ["derive", "env"] }
 prost = "0.13.4"
 rand = "0.8.5"
 serde = { version = "1.0.188", features = ["derive", "rc"] }
-sshx-core = { version = "0.4.1", path = "crates/sshx-core" }
+mysshx-core = { version = "0.4.1", path = "crates/mysshx-core" }
 tokio = { version = "1.40.0", features = ["full"] }
 tokio-stream = { version = "0.1.14", features = ["sync"] }
 tonic = { version = "0.12.3", features = ["tls", "tls-webpki-roots"] }

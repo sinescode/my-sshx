@@ -48,7 +48,7 @@
   class="max-w-screen-xl mx-auto px-4 md:px-8 lg:px-16 text-zinc-100 overflow-x-hidden"
 >
   <header class="mt-6 mb-4 sm:my-8 md:my-12">
-    <img class="h-12 sm:h-16 -mx-1" src={logotypeDark} alt="sshx logo" />
+    <img class="h-12 sm:h-16 -mx-1" src={logotypeDark} alt="mysshx logo" />
   </header>
   <h1
     class="font-medium text-3xl sm:text-4xl md:text-5xl max-w-[26ch] py-2 mb-6 md:mb-0 sm:tracking-tight leading-[1.15]"

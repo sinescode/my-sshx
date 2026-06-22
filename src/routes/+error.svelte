@@ -5,7 +5,7 @@
 </script>
 
 <main class="p-4 max-w-xl mx-auto my-6 md:my-12 lg:my-24">
-  <img class="h-16 -mx-2" src={logotypeDark} alt="sshx logo" />
+  <img class="h-16 -mx-2" src={logotypeDark} alt="mysshx logo" />
 
   <div class="space-y-4 mt-6 mb-8 text-zinc-300">
     <p>
